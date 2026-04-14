@@ -231,10 +231,17 @@ mhEdge <- function (data,
   if (isDbn) {
     dataRef = data[[1L]] # for the checks
     Tsteps = length(data) # data is a list here
+    K = ncol(dataRef) # number of nodes (one time step)
+    nNodes = K * Tsteps
+    nGV = nGV * K
+    nCPh = nCPh * K
+    
     data = build_master_data(data_list = data, nGV = nGV, nCPh = nCPh) # data is a matrix here
-    
-    stop(' ... todo here')
-    
+  } else {
+    dataRef = data
+    Tsteps = 1
+    K = ncol(data)
+    nNodes = K
   }
 
   # Check that adjMatrix has the same number of columns as data.
@@ -366,6 +373,7 @@ mhEdge <- function (data,
 
   # Create a new environment that has the log likelihood for all possible parent
   # combinations for each node. (LOG Likelihood Environment)
+  # This will work no matter the dim of the data
   logle <- logLikEnv(data = data,
                      nCPh = nCPh,
                      nGV = nGV,
@@ -436,10 +444,21 @@ mhEdge <- function (data,
       nParents <- colSums(currentAM)
     }
   }
+  
+  if (isDbn) {
+    tsCurrentAM = build_master_AM(intra_AM = currentAM,
+                                  inter_AM = interAm,
+                                  T_steps = Tsteps,
+                                  nGV = nGV,
+                                  nCPh = nCPh,
+                                  K = K)
+  } else {
+    tsCurrentAM = currentAM
+  }
 
   # Look up the log likelihood for each node.
   currentLL <- lull(data = data,
-                    am = currentAM,
+                    am = tsCurrentAM,
                     likelihood = currentLL,
                     llenv = logle,
                     nCPh = nCPh,
@@ -509,16 +528,41 @@ mhEdge <- function (data,
         next
       }
     }
+    
+    # if T > 1, need to modify the adj matrix
+    if (isDbn) {
+      tsProposedAM = build_master_AM(intra_AM = proposedAM,
+                                     inter_AM = interAm,
+                                     T_steps = Tsteps,
+                                     nGV = nGV,
+                                     nCPh = nCPh,
+                                     K = K)
+      
+      # Track the nodes that changed
+      dNodes = as.integer(
+        unlist(
+          lapply(difference$dNodes, function(j) {
+            vapply(seq_len(Tsteps), function(t) {
+              master_node_idx(j, t, K, Tsteps, nGV, nCPh)
+            }, integer(1L))
+          })
+        )
+      )
+      
+    } else {
+      tsProposedAM = proposedAM
+      dNodes = difference$dNodes
+    }
 
     # Look up the log likelihood for each node whose parents have changed.
     proposedLL <- lull(data = data,
-                       am = proposedAM,
+                       am = tsProposedAM,
                        likelihood = currentLL,
                        llenv = logle,
                        nCPh = nCPh,
                        nGV = nGV,
                        nNodes = nNodes,
-                       wNodes = difference$dNodes)
+                       wNodes = dNodes)
 
     # Determine whether to accept the proposed graph proposedES or the current
     # graph currentES.
@@ -604,9 +648,9 @@ mhEdge <- function (data,
                              round(edge_2 / thinTo, 4))
 
     # Determine which nodes the edge is between
-    posteriorES[e, 1] <- paste0(colnames(data)[coord[1, e]],
+    posteriorES[e, 1] <- paste0(colnames(dataRef)[coord[1, e]],
                                 '-',
-                                colnames(data)[coord[2, e]])
+                                colnames(dataRef)[coord[2, e]])
 
   }
 
@@ -635,8 +679,8 @@ mhEdge <- function (data,
   }
 
   # name the rows and columns with the names from the data matrix.
-  colnames(posteriorPM) <- colnames(data)
-  rownames(posteriorPM) <- colnames(data)
+  colnames(posteriorPM) <- colnames(dataRef)
+  rownames(posteriorPM) <- colnames(dataRef)
 
   # Calculate the stepSize based on the burnIn, iterations, and thinTo
   stepSize <- ifelse(burnIn == 0,

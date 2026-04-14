@@ -1,6 +1,7 @@
 # Function that creates data from an generic adj matrix
 # adj[i,j] = 1; i -> j
 
+#' @export
 gensimdata <- function (adj,
                         N      = 500,
                         b0     = 0,
