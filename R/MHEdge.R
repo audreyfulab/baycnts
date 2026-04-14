@@ -211,13 +211,6 @@ mhEdge <- function (data,
     stop ('adjMatrix must have zeros on the diagonal')
 
   }
-
-  # Check that adjMatrix has the same number of columns as data.
-  if (dim(adjMatrix)[1] != dim(data)[2]) {
-
-    stop ('data must have the same number of columns as adjMatrix')
-
-  }
   
   # Check interAm has the same dim as adjMatrix
   if (isDbn) {
@@ -231,6 +224,24 @@ mhEdge <- function (data,
       
     }
     
+  }
+  
+  # baycnts specific
+  # build master objects for dbn mode or otherwise no change needed
+  if (isDbn) {
+    dataRef = data[[1L]] # for the checks
+    Tsteps = length(data) # data is a list here
+    data = build_master_data(data_list = data, nGV = nGV, nCPh = nCPh) # data is a matrix here
+    
+    stop(' ... todo here')
+    
+  }
+
+  # Check that adjMatrix has the same number of columns as data.
+  if (dim(adjMatrix)[1] != dim(dataRef)[2]) {
+
+    stop ('data must have the same number of columns as adjMatrix')
+
   }
 
   # Check the prior probability vector has three elements.
@@ -263,7 +274,7 @@ mhEdge <- function (data,
 
   # Check that the number of genetic variants is less than or equal to the
   # number of nodes.
-  if (nGV > dim(data)[2]) {
+  if (nGV > dim(dataRef)[2]) {
 
     stop ('nGV must be less than or equal to the number of columns in data')
 
@@ -271,7 +282,7 @@ mhEdge <- function (data,
 
   # Check that the number of clinical phenotypes is less than or equal to the
   # number of nodes.
-  if (nCPh > dim(data)[2]) {
+  if (nCPh > dim(dataRef)[2]) {
 
     stop ('nCPh must be less than or equal to the number of columns in data')
 
