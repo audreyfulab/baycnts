@@ -48,6 +48,9 @@
 #' @param maxParents Maximum number of parents allowed for any node. If NULL
 #' (default), no limit is imposed. This helps prevent overfitting and numerical
 #' issues with compositional data.
+#' 
+#' @param interAm A square matrix with the same dimensions as adjMatrix 
+#' specifying the fixed inter-slice (lag-1) connections. Default is NULL.
 #'
 #' @return An object of class baycn containing 9 elements:
 #'
@@ -172,15 +175,27 @@ mhEdge <- function (data,
                     thinTo = 200,
                     progress = TRUE,
                     threads = 1,
-                    maxParents = NULL) {
+                    maxParents = NULL,
+                    interAm = NULL) {
 
   # Preprocessing checks -------------------------------------------------------
 
+  # baycnts specific
+  # check if it is a time series input
+  isDbn = is.list(data)
+  
   # Check that data is a matrix.
-  if (!is.matrix(data)) {
+  if (!is.matrix(data) && !is.list(data)) {
 
-    stop ('data is not a matrix')
+    stop ('data is not a matrix or a list of matrices')
 
+  }
+  
+  # Check for interAm when in time series mode
+  if (isDbn && is.null(interAm)) {
+    
+    stop('need to define interAm when you have multi-dim data')
+    
   }
 
   # Check that adjMatrix is a square matrix.
@@ -202,6 +217,20 @@ mhEdge <- function (data,
 
     stop ('data must have the same number of columns as adjMatrix')
 
+  }
+  
+  # Check interAm has the same dim as adjMatrix
+  if (isDbn) {
+    if (
+      !is.matrix(interAm) ||
+      nrow(interAm) != nrow(adjMatrix) ||
+      ncol(interAm) != ncol(adjMatrix)
+    ) {
+      
+      stop('interAm must be a square matrix with the same dimesions as adjMatrix')
+      
+    }
+    
   }
 
   # Check the prior probability vector has three elements.
