@@ -1,5 +1,5 @@
 Encoding: UTF-8
-Package: baycn
+Package: baycnts
 Type: Package
 Title: Bayesian Inference for Causal Networks
 Version: 2.0.0
