@@ -301,7 +301,7 @@ mhEdge <- function (data,
   # Set up ---------------------------------------------------------------------
 
   # Determine the number of nodes in the graph.
-  nNodes <- ncol(adjMatrix)
+  # nNodes <- ncol(adjMatrix) # Calculated in the if statement line #231
 
   # Get the coordinates of the non zero elements in the adjacency matrix.
   coord <- coordinates(adjMatrix = adjMatrix)
@@ -326,25 +326,6 @@ mhEdge <- function (data,
   keep <- whichIt(burnIn = burnIn,
                   iterations = iterations,
                   thinTo = thinTo)
-
-  # Display runtime message for finding potential cycles.
-  if (progress) {
-
-    cat('Identifying potential cycles: ')
-
-    begin_time <- Sys.time()
-
-  }
-
-  # Display runtime message for finding potential cycles.
-  if (progress) {
-
-    end_time <- Sys.time()
-
-    cat(as.double(round(end_time - begin_time, 3),
-                  units = 'secs'), 'seconds', '\n')
-
-  }
 
   # Initialize vectors, lists, and matrices ------------------------------------
 
@@ -410,7 +391,7 @@ mhEdge <- function (data,
   currentAM <- toAdjMatrix(coordinates = coord,
                            graph = currentES,
                            nEdges = nEdges,
-                           nNodes = nNodes)
+                           nNodes = K) # nNodes 
 
   # Enforce maxParents limit on initial graph
   if (!is.null(maxParents)) {
@@ -440,7 +421,7 @@ mhEdge <- function (data,
       currentAM <- toAdjMatrix(coordinates = coord,
                                graph = currentES,
                                nEdges = nEdges,
-                               nNodes = nNodes)
+                               nNodes = K) # nNodes
       nParents <- colSums(currentAM)
     }
   }
@@ -664,7 +645,7 @@ mhEdge <- function (data,
 
   # Initialize a pxp matrix to fill in later with the estimated probabilities
   # from bacyn.
-  posteriorPM <- matrix(0, nrow = nNodes, ncol = nNodes)
+  posteriorPM <- matrix(0, nrow = K, ncol = K) # nNodes
 
   # loop through the row column coordinates of the true edge indicies to fill in
   # the posterior edge probabilities.

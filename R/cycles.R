@@ -293,10 +293,10 @@ cycleRmvr <- function(currentES,
   A <- build_adj(coord, currentES, nNodes)
   
   # Check if it is not a DAG
-  if (dag_constraint(A) > 0) {
-    A <- make_acyclic(A, prior, coord, edgeType, nCPh, pmr)
-    currentES <- adj_to_currentES(A, coord)
-  }
+  #if (dag_constraint(A) > 0) {
+  A <- make_acyclic(A, prior, coord, edgeType, nCPh, pmr)
+  currentES <- adj_to_currentES(A, coord)
+  #}
   
   currentES
 }

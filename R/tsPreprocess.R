@@ -11,6 +11,7 @@
 #
 # @return A single N x (K * T) matrix with type-major column ordering.
 #
+#' @export
 build_master_data <- function(data_list, nGV, nCPh) {
   
   if (nGV > 0L || nCPh > 0) {
@@ -36,6 +37,7 @@ build_master_data <- function(data_list, nGV, nCPh) {
 #
 # @return A (K*T) x (K*T) integer adjacency matrix.
 #
+#' @export
 build_master_AM <- function(intra_AM, inter_AM, T_steps, nGV, nCPh, K) {
 
   # pre-allocate
@@ -84,7 +86,7 @@ master_node_idx <- function(j, t, K, T_steps, nGV = 0, nCPh = 0) {
     stop('nGV and nCPh not supported yed')
   }
 
-  idx = (t - 1L) * T_steps + j
+  idx = (t - 1L) * K + j
   idx
   
 }
